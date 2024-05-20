@@ -50,8 +50,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: List repository files
+        run: ls -R
+
+      - name: List terraform directory files
+        run: ls -R terraform
+
       - name: Verify tfvars file exists
-        run: ls -l terraform/terraform.tfvars
+        run: cat terraform/terraform.tfvars
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
