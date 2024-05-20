@@ -50,8 +50,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: List files in repository root
+        run: ls -la
+
       - name: Verify tfvars file exists
         run: ls -la terraform/terraform.tfvars
+
+      - name: List all files in terraform directory
+        run: ls -R terraform
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
@@ -78,6 +84,9 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
         run: terraform init -backend-config="resource_group_name=${{ secrets.BACKEND_RESOURCE_GROUP_NAME }}" -backend-config="storage_account_name=${{ secrets.BACKEND_STORAGE_ACCOUNT_NAME }}" -backend-config="container_name=${{ secrets.BACKEND_CONTAINER_NAME }}" -backend-config="key=${{ secrets.BACKEND_KEY }}"
         working-directory: terraform
+
+      - name: Verify directory structure before plan
+        run: ls -R terraform
 
       - name: Terraform Plan
         env:
