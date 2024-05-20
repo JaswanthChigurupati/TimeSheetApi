@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
   build:
@@ -35,7 +34,6 @@ jobs:
         run: |
           docker build -t timesheetapi:latest -f TimeSheetApi/Dockerfile .
           docker tag timesheetapi:latest ghcr.io/${{ env.REPO_OWNER_LOWER }}/timesheetapi:latest
-
       - name: Login to GitHub Container Registry
         run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
@@ -66,7 +64,6 @@ jobs:
           echo "ARM_CLIENT_SECRET=${{ secrets.ARM_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
           echo "ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}" >> $GITHUB_ENV
-
       - name: Terraform Init
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -82,7 +79,7 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        run: terraform plan -var-file=terraform/terraform.tfvars -out=tfplan
+        run: terraform plan -out=tfplan
         working-directory: terraform
 
       - name: Upload plan artifact
@@ -94,7 +91,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: plan
-    if: github.event_name == 'workflow_dispatch' || needs.plan.result == 'success'
+    if: github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
@@ -130,5 +127,5 @@ jobs:
 
       - name: Deploy to AKS
         run: |
-          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/deployment.yaml 
           kubectl apply -f k8s/service.yaml
