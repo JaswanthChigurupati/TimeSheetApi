@@ -29,7 +29,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t timesheetapi:latest -f timesheetapi/Dockerfile .
+        docker build -t timesheetapi:latest -f TimeSheetApi/Dockerfile .
         docker tag timesheetapi:latest ghcr.io/${{ github.repository_owner }}/timesheetapi:latest
 
     - name: Login to GitHub Container Registry
