@@ -1104,11 +1104,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\WorkSpace\\Interview Prep\\New Look Technical test\\TimeSheetApi\\TimeSheetApi\\TimeSheetApi.csproj",
+      "projectUniqueName": "D:\\Jaswanth Chigurupati\\GitHub\\Repos\\TimeSheetApi\\TimeSheetApi\\TimeSheetApi.csproj",
       "projectName": "TimeSheetApi",
-      "projectPath": "E:\\WorkSpace\\Interview Prep\\New Look Technical test\\TimeSheetApi\\TimeSheetApi\\TimeSheetApi.csproj",
+      "projectPath": "D:\\Jaswanth Chigurupati\\GitHub\\Repos\\TimeSheetApi\\TimeSheetApi\\TimeSheetApi.csproj",
       "packagesPath": "C:\\Users\\jashw\\.nuget\\packages\\",
-      "outputPath": "E:\\WorkSpace\\Interview Prep\\New Look Technical test\\TimeSheetApi\\TimeSheetApi\\obj\\",
+      "outputPath": "D:\\Jaswanth Chigurupati\\GitHub\\Repos\\TimeSheetApi\\TimeSheetApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\jashw\\AppData\\Roaming\\NuGet\\NuGet.Config",
