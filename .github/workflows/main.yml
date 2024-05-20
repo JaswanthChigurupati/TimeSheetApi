@@ -94,11 +94,12 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        run: terraform plan -var-file=terraform/terraform.tfvars -out=terraform/tfplan
+        run: terraform plan -var-file=terraform.tfvars -out=tfplan
         working-directory: terraform
 
       - name: Verify tfplan file exists
-        run: ls -la terraform/tfplan
+        run: ls -la tfplan
+        working-directory: terraform
 
       - name: Upload plan artifact
         uses: actions/upload-artifact@v2
@@ -122,7 +123,8 @@ jobs:
           path: terraform
 
       - name: Verify plan artifact exists
-        run: ls -la terraform/tfplan
+        run: ls -la tfplan
+        working-directory: terraform
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
@@ -149,7 +151,7 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        run: terraform apply "terraform/tfplan"
+        run: terraform apply "tfplan"
         working-directory: terraform
 
       - name: Get AKS credentials
