@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Verify tfvars file exists
-        run: cat terraform/terraform.tfvars
+        run: ls -la terraform/terraform.tfvars
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
@@ -70,9 +70,6 @@ jobs:
           echo "ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
           echo "ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}" >> $GITHUB_ENV
 
-      - name: List files in terraform directory
-        run: ls -la terraform
-
       - name: Terraform Init
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -88,11 +85,11 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        run: terraform plan -var-file=terraform.tfvars -out=tfplan
+        run: terraform plan -var-file=terraform/terraform.tfvars -out=terraform/tfplan
         working-directory: terraform
 
       - name: Verify tfplan file exists
-        run: ls -l terraform/tfplan
+        run: ls -la terraform/tfplan
 
       - name: Upload plan artifact
         uses: actions/upload-artifact@v2
@@ -128,13 +125,22 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Terraform Init
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        run: terraform init -backend-config="resource_group_name=${{ secrets.BACKEND_RESOURCE_GROUP_NAME }}" -backend-config="storage_account_name=${{ secrets.BACKEND_STORAGE_ACCOUNT_NAME }}" -backend-config="container_name=${{ secrets.BACKEND_CONTAINER_NAME }}" -backend-config="key=${{ secrets.BACKEND_KEY }}"
+        working-directory: terraform
+
       - name: Terraform Apply
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        run: terraform apply "tfplan"
+        run: terraform apply "terraform/tfplan"
         working-directory: terraform
 
       - name: Get AKS credentials
