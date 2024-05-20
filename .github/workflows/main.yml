@@ -61,21 +61,26 @@ jobs:
 
       - name: Set environment variables for Terraform backend
         run: |
-          echo "ARM_CLIENT_ID=$(echo ${{ secrets.AZURE_CREDENTIALS }} | jq -r .clientId)" >> $GITHUB_ENV
-          echo "ARM_CLIENT_SECRET=$(echo ${{ secrets.AZURE_CREDENTIALS }} | jq -r .clientSecret)" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=$(echo ${{ secrets.AZURE_CREDENTIALS }} | jq -r .subscriptionId)" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=$(echo ${{ secrets.AZURE_CREDENTIALS }} | jq -r .tenantId)" >> $GITHUB_ENV
+          echo "ARM_CLIENT_ID=${{ secrets.ARM_CLIENT_ID }}" >> $GITHUB_ENV
+          echo "ARM_CLIENT_SECRET=${{ secrets.ARM_CLIENT_SECRET }}" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}" >> $GITHUB_ENV
 
       - name: Terraform Init
         env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CREDENTIALS_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CREDENTIALS_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_CREDENTIALS_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_CREDENTIALS_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
         run: terraform init -backend-config="resource_group_name=${{ secrets.BACKEND_RESOURCE_GROUP_NAME }}" -backend-config="storage_account_name=${{ secrets.BACKEND_STORAGE_ACCOUNT_NAME }}" -backend-config="container_name=${{ secrets.BACKEND_CONTAINER_NAME }}" -backend-config="key=${{ secrets.BACKEND_KEY }}"
         working-directory: terraform
 
       - name: Terraform Plan
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
         run: terraform plan -out=tfplan
         working-directory: terraform
 
@@ -111,6 +116,11 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Terraform Apply
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
         run: terraform apply "terraform/tfplan"
         working-directory: terraform
 
@@ -119,5 +129,5 @@ jobs:
 
       - name: Deploy to AKS
         run: |
-          kubectl apply -f k8s/deployment.yaml 
+          kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
