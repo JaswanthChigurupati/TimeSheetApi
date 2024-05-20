@@ -27,71 +27,86 @@ jobs:
     - name: Publish
       run: dotnet publish -c Release -o ${{ github.workspace }}/publish
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
+    - name: Build Docker image
+      run: |
+        docker build -t timesheetapi:latest .
+        docker tag timesheetapi:latest ghcr.io/${{ github.repository_owner }}/timesheetapi:latest
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
       with:
-        name: dotnet-api
-        path: ${{ github.workspace }}/publish
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Push Docker image
+      run: docker push ghcr.io/${{ github.repository_owner }}/timesheetapi:latest
 
   plan:
-    needs: build
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Download artifact
-      uses: actions/download-artifact@v2
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
       with:
-        name: dotnet-api
-        path: ${{ github.workspace }}/publish
-
-    - name: Set up Kubernetes
-      uses: Azure/setup-kubectl@v1
-      with:
-        version: 'v1.21.0'
+        terraform_version: 1.0.11
 
     - name: Azure Login
-      uses: Azure/login@v1
+      uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Get AKS credentials
-      run: az aks get-credentials --resource-group aks-resource-group --name aks-cluster
+    - name: Terraform Init
+      run: terraform init
+      working-directory: terraform
 
-    - name: Plan Deployment
-      run: kubectl apply --dry-run=client -f k8s/deployment.yaml
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
+      working-directory: terraform
+
+    - name: Upload plan artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: terraform-plan
+        path: terraform/tfplan
 
   deploy:
-    needs: plan
     runs-on: ubuntu-latest
+    needs: plan
     if: github.event_name == 'workflow_dispatch'
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Download artifact
+    - name: Download plan artifact
       uses: actions/download-artifact@v2
       with:
-        name: dotnet-api
-        path: ${{ github.workspace }}/publish
+        name: terraform-plan
+        path: terraform
 
-    - name: Set up Kubernetes
-      uses: Azure/setup-kubectl@v1
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
       with:
-        version: 'v1.21.0'
+        terraform_version: 1.0.11
 
     - name: Azure Login
-      uses: Azure/login@v1
+      uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Terraform Apply
+      run: terraform apply "terraform/tfplan"
+      working-directory: terraform
+
     - name: Get AKS credentials
-      run: az aks get-credentials --resource-group aks-resource-group --name aks-cluster
+      run: az aks get-credentials --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --name ${{ secrets.AZURE_AKS_CLUSTER }}
 
     - name: Deploy to AKS
       run: |
-        kubectl apply -f k8s/deployment.yaml
-        kubectl apply -f k8s/service.yaml
+        kubectl set image deployment/timesheetapi timesheetapi=ghcr.io/${{ github.repository_owner }}/timesheetapi:latest
+        kubectl rollout status deployment/timesheetapi
