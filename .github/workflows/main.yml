@@ -76,15 +76,6 @@ jobs:
           echo "ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
           echo "ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}" >> $GITHUB_ENV
           
-      - name: Verify AKS Cluster Doesn't Exist
-        run: |
-          if az aks show --name ${{ secrets.AZURE_AKS_CLUSTER }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}; then
-            echo "AKS cluster exists. Exiting..."
-            exit 1
-          else
-            echo "AKS cluster does not exist. Continuing..."
-          fi
-          
       - name: Terraform Init
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
