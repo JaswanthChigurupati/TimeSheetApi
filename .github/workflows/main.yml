@@ -75,7 +75,16 @@ jobs:
           echo "ARM_CLIENT_SECRET=${{ secrets.ARM_CLIENT_SECRET }}" >> $GITHUB_ENV
           echo "ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
           echo "ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}" >> $GITHUB_ENV
-
+          
+      - name: Verify AKS Cluster Doesn't Exist
+        run: |
+          if az aks show --name ${{ secrets.AZURE_AKS_CLUSTER }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}; then
+            echo "AKS cluster exists. Exiting..."
+            exit 1
+          else
+            echo "AKS cluster does not exist. Continuing..."
+          fi
+          
       - name: Terraform Init
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -104,6 +113,15 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
         run: terraform import azurerm_resource_group.aks /subscriptions/${{ secrets.ARM_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}
+        working-directory: terraform
+
+      - name: Remove Existing AKS State References
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        run: terraform state rm azurerm_kubernetes_cluster.aks || true
         working-directory: terraform
         
       - name: Terraform Plan
