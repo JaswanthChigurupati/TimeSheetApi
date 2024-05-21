@@ -146,7 +146,7 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        run: terraform import azurerm_resource_group.aks /subscriptions/${{ secrets.ARM_SUBSCRIPTION_ID }}/resourceGroups/YOUR_RESOURCE_GROUP_NAME
+        run: terraform import azurerm_resource_group.aks /subscriptions/${{ secrets.ARM_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}
         working-directory: terraform
 
   deploy:
